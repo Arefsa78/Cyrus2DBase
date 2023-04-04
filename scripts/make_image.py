@@ -6,7 +6,7 @@ import cv2 as cv
 
 PITCH_HALF_WIDTH = 34
 PITCH_HALF_LENGTH = 52.5
-
+N_DATA = 0
 
 class Player:
     def __init__(self):
@@ -69,10 +69,11 @@ def make_image(ball: Ball, players: list[Player]):
 def draw_field(inps):
     data = inps[0]
     n = inps[1]
-    print(n)
+    print(f'{n}\t{N_DATA}')
     ball_data = data[1:5]
     players_data = data[5:-3]
     out_data = data[-3:]
+    print(data)
 
     ball = Ball()
     ball.x = ball_data[0]
@@ -85,23 +86,41 @@ def draw_field(inps):
         p.x = players_data[i * 3 + 1]
         p.y = players_data[i * 3 + 2]
         p.side = 0 if i <= 10 else 1
-
     img = make_image(ball, players)
-    cv.imwrite(f'imgs/{n}_{out_data[0]}_{out_data[1]}_{out_data[2]}.jpg', img)
+    return img, out_data
 
 
-files_list = os.listdir('data/')
+dir_data = '/data1/aref/2d/data/'
+files_list = os.listdir(dir_data)
 n = 0
 inps = []
 for file in files_list:
     if not file.endswith('.csv'):
         continue
-    lines = open(f'data/{file}', 'r').readlines()
+    lines = open(f'{dir_data}{file}', 'r').readlines()
     for line in lines[1:]:
         data = np.fromstring(line, dtype=float, sep=',')
         inps.append((data, n))
         n += 1
+    if n > 3000:
+        break
 
-pool = Pool(20)
-pool.map(draw_field, inps)
+N_DATA = n
+
+pool = Pool(1)
+res = pool.map(draw_field, inps)
+
+x = []
+y = []
+n_r = len(res)
+for i, r in enumerate(res):
+    print(i, n_r)
+    x.append(r[0])
+    y.append(r[1])
+
+x = np.array(x)
+y = np.array(y)
+
+np.save('x.npy', x)
+np.save('y.npy', y)
 
