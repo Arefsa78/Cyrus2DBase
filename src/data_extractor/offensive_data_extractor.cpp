@@ -21,7 +21,7 @@
 #define ADD_ELEM(key, value) features.push_back(value)
 
 double invalid_data_ = -2.0;
-bool OffensiveDataExtractor::active = false;
+bool OffensiveDataExtractor::active = true;
 
 using namespace rcsc;
 
@@ -35,17 +35,17 @@ OffensiveDataExtractor::~OffensiveDataExtractor() {
 
 
 OffensiveDataExtractor::Option::Option() {
-    cycle = false; //
+    cycle = true; //
     ball_pos = true;
     unum = BOTH;
     pos = BOTH;
-    relativePos = BOTH;
-    polarPos = BOTH;
-    isKicker = TM;
-    openAnglePass = TM;
-    nearestOppDist = TM;
-    in_offside = TM;
-    use_convertor = true;
+    relativePos = NONE;
+    polarPos = NONE;
+    isKicker = NONE;
+    openAnglePass = NONE;
+    nearestOppDist = NONE;
+    in_offside = NONE;
+    use_convertor = false;
 }
 
 
@@ -60,13 +60,14 @@ void OffensiveDataExtractor::init_file(DEState &state) {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    std::string dir = "/data1/nader/workspace/robo/base_data/";
+    std::string dir = "/home/aref/data/";
     strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
     std::string str(buffer);
     std::string rand_name = std::to_string(SamplePlayer::player_port);
     str += "_" + std::to_string(state.wm().self().unum()) + "_" + state.wm().theirTeamName() + "_E" + rand_name + ".csv";
 
     fout = std::ofstream((dir + str).c_str());
+    std::cout <<"#### NAME: " << dir + str <<std::endl;
     std::string header = get_header();
     #ifdef ODEDebug
         dlog.addText(Logger::BLOCK, header.c_str());
