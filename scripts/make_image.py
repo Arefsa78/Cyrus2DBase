@@ -69,25 +69,26 @@ def make_image(ball: Ball, players: list[Player]):
 def draw_field(inps):
     data = inps[0]
     n = inps[1]
+    u = inps[2]
     print(f'{n}\t{N_DATA}')
     ball_data = data[1:5]
     players_data = data[5:-3]
     out_data = data[-3:]
-    print(data)
 
     ball = Ball()
-    ball.x = ball_data[0]
-    ball.y = ball_data[1]
+    ball.x = np.clip(ball_data[0], -PITCH_HALF_LENGTH, +PITCH_HALF_LENGTH)
+    ball.y = np.clip(ball_data[1], -PITCH_HALF_WIDTH, +PITCH_HALF_WIDTH)
 
     players = [Player() for _ in range(22)]
 
     for i, p in enumerate(players):
         p.unum = int(players_data[i * 3])
-        p.x = players_data[i * 3 + 1]
-        p.y = players_data[i * 3 + 2]
+        p.x = np.clip(players_data[i * 3 + 1], -PITCH_HALF_LENGTH, +PITCH_HALF_LENGTH)
+        p.y = np.clip(players_data[i * 3 + 2], -PITCH_HALF_WIDTH, +PITCH_HALF_WIDTH)
         p.side = 0 if i <= 10 else 1
     img = make_image(ball, players)
-    return img, out_data
+    cv.imwrite(f'imgs/{n}_{out_data[0]}_{out_data[1]}_{out_data[2]}_{u}.jpg', img)
+
 
 
 dir_data = '/data1/aref/2d/data/'
@@ -98,29 +99,32 @@ for file in files_list:
     if not file.endswith('.csv'):
         continue
     lines = open(f'{dir_data}{file}', 'r').readlines()
+    u = file.split('_')[1]
     for line in lines[1:]:
+        print(n)
         data = np.fromstring(line, dtype=float, sep=',')
-        inps.append((data, n))
+        # inps.append((data, n))
+        inps.append((data, n, u))
         n += 1
-    if n > 3000:
+    if n > 50_000:
         break
 
 N_DATA = n
 
-pool = Pool(1)
-res = pool.map(draw_field, inps)
+pool = Pool(70)
+pool.map(draw_field, inps)
 
-x = []
-y = []
-n_r = len(res)
-for i, r in enumerate(res):
-    print(i, n_r)
-    x.append(r[0])
-    y.append(r[1])
+# x = []
+# y = []
+# n_r = len(res)
+# for i, r in enumerate(res):
+#     print(i, n_r)
+#     x.append(r[0])
+#     y.append(r[1])
 
-x = np.array(x)
-y = np.array(y)
+# x = np.array(x)
+# y = np.array(y)
 
-np.save('x.npy', x)
-np.save('y.npy', y)
+# np.save('x.npy', x)
+# np.save('y.npy', y)
 
